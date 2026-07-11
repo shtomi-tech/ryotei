@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#141413">
+<link rel="manifest" href="manifest.webmanifest">
+<title>旅程管理</title>
+<style>
+  :root{
+    --ivory:#FAF9F6; --ivory-2:#F3F1EA; --ink:#141413; --ink-2:#514f49;
+    --line:#141413; --line-soft:#c9c5b8; --clay:#b5532e;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;background:var(--ivory);color:var(--ink);}
+  body{font-family:"Hiragino Mincho ProN","Yu Mincho",serif;line-height:1.6;-webkit-font-smoothing:antialiased;}
+  .mono{font-family:"SFMono-Regular",Consolas,"Courier New",monospace;text-transform:uppercase;letter-spacing:.12em;}
+  .wrap{max-width:900px;margin:0 auto;padding:40px 24px 80px;}
+  .toolbar{display:flex;gap:8px;flex-wrap:wrap;margin:0 0 24px;}
+  .toolbar button,.toolbar select{background:var(--ivory);border:1.5px solid var(--line);color:var(--ink);padding:9px 12px;font:12px inherit;cursor:pointer;}
+  .toolbar button.active{background:var(--ink);color:var(--ivory);}
+  .toolbar button:focus-visible,.toolbar select:focus-visible,nav.trips button:focus-visible{outline:3px solid var(--clay);outline-offset:2px;}
+  .next-card{border:2px solid var(--line);padding:14px 16px;margin:0 0 24px;background:var(--ivory-2);}
+  .next-card .label{font-size:10px;color:var(--ink-2);margin-bottom:4px;}
+  .next-card strong{font-size:18px;display:block;}
+  .next-card small{color:var(--ink-2);}
+  .day.today{background:var(--ivory-2);padding-left:12px;padding-right:12px;}
+  .day.today .day-date:after{content:" TODAY";font:10px "SFMono-Regular",Consolas,monospace;color:var(--clay);letter-spacing:.1em;}
+  .item-link{font-size:11px;color:var(--ink);text-decoration:underline;margin-left:8px;white-space:nowrap;}
+  .cost-summary{display:flex;gap:24px;flex-wrap:wrap;border-bottom:1px solid var(--line-soft);padding:0 10px 12px;margin-bottom:4px;}
+  .cost-summary span{font-size:11px;color:var(--ink-2);}.cost-summary b{display:block;color:var(--ink);font:16px "SFMono-Regular",Consolas,monospace;}
+  .expense-form{display:flex;gap:8px;margin-top:12px;max-width:560px;}
+  .expense-form input,.expense-form button{border:1px solid var(--line);background:var(--ivory);padding:8px;font:13px inherit;}
+  .expense-form input:first-child{flex:1;min-width:0;}.expense-form input[type=number]{width:110px;}.expense-form button{cursor:pointer;background:var(--ink);color:var(--ivory);}
+
+  /* header */
+  header{border-bottom:2px solid var(--line);padding-bottom:16px;margin-bottom:24px;}
+  .kicker{font-size:11px;color:var(--ink-2);margin-bottom:8px;}
+  h1{font-size:30px;margin:0;font-weight:700;letter-spacing:.02em;}
+
+  /* trip tabs */
+  nav.trips{display:flex;flex-wrap:wrap;gap:0;margin:20px 0 32px;border:2px solid var(--line);}
+  nav.trips button{
+    flex:1;min-width:140px;background:var(--ivory);color:var(--ink);border:0;
+    border-right:1px solid var(--line-soft);padding:12px 14px;cursor:pointer;
+    font-family:inherit;font-size:14px;text-align:left;
+  }
+  nav.trips button:last-child{border-right:0;}
+  nav.trips button.active{background:var(--ink);color:var(--ivory);}
+  nav.trips button .t-date{display:block;font-size:10px;letter-spacing:.1em;opacity:.7;margin-top:3px;}
+
+  /* trip head */
+  .trip-head{display:flex;align-items:baseline;justify-content:space-between;gap:16px;flex-wrap:wrap;margin-bottom:6px;}
+  .trip-head h2{font-size:24px;margin:0;font-weight:700;}
+  .trip-sub{color:var(--ink-2);font-size:14px;margin:0 0 20px;}
+  .count{border:1.5px solid var(--line);padding:6px 12px;font-size:12px;white-space:nowrap;}
+  .count b{font-size:16px;}
+  .count.done{border-style:dashed;color:var(--ink-2);}
+
+  /* section label */
+  .sec{margin:36px 0 14px;font-size:12px;color:var(--ink-2);border-bottom:1px solid var(--line-soft);padding-bottom:6px;}
+
+  /* timeline */
+  .day{border-top:2px solid var(--line);padding:16px 0;}
+  .day:first-child{border-top:2px solid var(--line);}
+  .day-head{display:flex;align-items:baseline;gap:14px;margin-bottom:12px;}
+  .day-date{font-size:20px;font-weight:700;}
+  .day-wd{font-size:12px;color:var(--ink-2);border:1px solid var(--line-soft);padding:1px 7px;}
+  .day-title{font-size:15px;color:var(--ink-2);}
+  ul.items{list-style:none;margin:0;padding:0;}
+  ul.items li{display:flex;gap:16px;padding:5px 0;align-items:baseline;}
+  .it-time{flex:0 0 52px;font-size:13px;text-align:right;color:var(--ink);}
+  .it-time.empty{color:var(--line-soft);}
+  .it-text{flex:1;font-size:15px;}
+  .it-tag{flex:0 0 auto;font-size:10px;padding:1px 7px;border:1px solid var(--line-soft);color:var(--ink-2);}
+  .it-tag[data-t="move"]{border-color:var(--ink);color:var(--ink);}
+  .it-tag[data-t="stay"]{background:var(--ink);color:var(--ivory);border-color:var(--ink);}
+  .it-tag[data-t="spot"]{border-style:dashed;}
+
+  /* checklist */
+  ul.check{list-style:none;margin:0;padding:0;}
+  ul.check li{display:flex;gap:12px;align-items:baseline;padding:6px 0;border-bottom:1px solid var(--line-soft);}
+  .box{flex:0 0 auto;width:16px;height:16px;border:1.5px solid var(--ink);display:inline-block;text-align:center;line-height:14px;font-size:12px;}
+  .box.on{background:var(--ink);color:var(--ivory);}
+  .ck-text.on{color:var(--ink-2);text-decoration:line-through;}
+
+  /* costs */
+  table.cost{width:100%;border-collapse:collapse;font-size:14px;}
+  table.cost th,table.cost td{text-align:left;padding:8px 10px;border-bottom:1px solid var(--line-soft);}
+  table.cost th{font-size:11px;color:var(--ink-2);border-bottom:1.5px solid var(--line);}
+  table.cost td.num{text-align:right;font-family:"SFMono-Regular",Consolas,monospace;}
+  table.cost .paid{font-size:10px;color:var(--ink-2);border:1px solid var(--line-soft);padding:0 5px;}
+  table.cost .paid.yes{background:var(--ink);color:var(--ivory);border-color:var(--ink);}
+  .grp-row td{background:var(--ivory-2);font-size:11px;color:var(--ink-2);letter-spacing:.1em;}
+  tfoot td{border-top:2px solid var(--line);font-weight:700;font-size:16px;padding-top:12px;}
+  tfoot td.num{font-family:"SFMono-Regular",Consolas,monospace;}
+  .cost-note{font-size:12px;color:var(--ink-2);margin-top:8px;}
+
+  footer{margin-top:60px;border-top:1px solid var(--line-soft);padding-top:12px;font-size:11px;color:var(--ink-2);}
+
+  @media print{
+    nav.trips{display:none;} body{background:#fff;} .wrap{max-width:none;}
+    .toolbar,.next-card{display:none;} .day:not(.today){break-inside:avoid;}
+  }
+  @media(max-width:560px){
+    ul.items li{flex-wrap:wrap;} .it-time{flex-basis:44px;}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="kicker mono">Travel Itinerary</div>
+    <h1>旅程管理</h1>
+  </header>
+
+  <nav class="trips" id="tabs"></nav>
+  <div class="toolbar" aria-label="表示操作">
+    <button id="todayBtn" type="button">今日の予定</button>
+    <button id="allBtn" type="button" class="active">全日程</button>
+    <select id="daySelect" aria-label="日付へ移動"><option value="">日付へ移動</option></select>
+    <button id="printBtn" type="button">印刷</button>
+  </div>
+  <main id="view"></main>
+
+  <footer class="mono">Local itinerary · checklist is saved on this device</footer>
+</div>
+
+<script src="data.js"></script>
+<script>
+const TAG_LABEL = { move:"移動", stay:"宿泊", spot:"観光", meal:"食事" };
+const WEEK = ["日","月","火","水","木","金","土"];
+let activeTrip = null;
+let viewMode = "all";
+
+function fmtYen(n){ return "¥" + n.toLocaleString("ja-JP"); }
+function tripDate(trip, day, index){
+  if(/^\d{4}-\d{2}-\d{2}$/.test(day.date)) return new Date(day.date + "T00:00:00");
+  const d = new Date(trip.start + "T00:00:00"); d.setDate(d.getDate()+index); return d;
+}
+function dateLabel(d){ return `${String(d.getMonth()+1).padStart(2,"0")}/${String(d.getDate()).padStart(2,"0")}`; }
+function sameDay(a,b){ return a.getFullYear()===b.getFullYear()&&a.getMonth()===b.getMonth()&&a.getDate()===b.getDate(); }
+function storageKey(trip){ return `ryotei-checklist-${trip.id}`; }
+function costKey(trip){ return `ryotei-costs-${trip.id}`; }
+function getExtraCosts(trip){ try{return JSON.parse(localStorage.getItem(costKey(trip)))||[];}catch(e){return [];} }
+function getChecklist(trip){
+  try { const saved=JSON.parse(localStorage.getItem(storageKey(trip))); return Array.isArray(saved)?saved:trip.checklist||[]; }
+  catch(e){ return trip.checklist||[]; }
+}
+function nextEvent(trip){
+  const now=new Date();
+  for(let di=0;di<trip.days.length;di++){
+    const day=trip.days[di], date=tripDate(trip,day,di);
+    for(const item of (day.items||[])) if(item.time){
+      const at=new Date(date); const [h,m]=item.time.split(":").map(Number); at.setHours(h,m,0,0);
+      if(at>=now) return {item,day,date,at};
+    }
+  }
+  return null;
+}
+
+function daysBetween(a, b){
+  const MS = 86400000;
+  const d0 = new Date(a.getFullYear(),a.getMonth(),a.getDate());
+  const d1 = new Date(b.getFullYear(),b.getMonth(),b.getDate());
+  return Math.round((d1 - d0)/MS);
+}
+
+function countdownHTML(trip){
+  const today = new Date();
+  const start = new Date(trip.start + "T00:00:00");
+  const end = new Date(trip.end + "T00:00:00");
+  const dStart = daysBetween(today, start);
+  if(dStart > 0)  return `<div class="count">出発まで <b>${dStart}</b> 日</div>`;
+  const dEnd = daysBetween(today, end);
+  if(dStart <= 0 && dEnd >= 0) return `<div class="count">旅行中 <b>${daysBetween(start,today)+1}</b> 日目</div>`;
+  return `<div class="count done">終了した旅行</div>`;
+}
+
+function renderTrip(trip){
+  activeTrip=trip;
+  const v = document.getElementById("view");
+  const range = `${trip.start.slice(5).replace("-","/")} – ${trip.end.slice(5).replace("-","/")}`;
+
+  // days
+  const today=new Date();
+  const days = trip.days.map((d,di)=>{
+    const date=tripDate(trip,d,di), isToday=sameDay(date,today);
+    if(viewMode === "today" && !isToday) return "";
+    const items = d.items.map(it=>{
+      const tag = it.tag ? `<span class="it-tag" data-t="${it.tag}">${TAG_LABEL[it.tag]||""}</span>` : "";
+      const tCls = it.time ? "" : " empty";
+      const mapUrl = it.mapUrl || (["spot","meal","stay"].includes(it.tag) ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(it.text.split("（")[0])}` : "");
+      const map = mapUrl ? `<a class="item-link" href="${mapUrl}" target="_blank" rel="noopener">地図</a>` : "";
+      return `<li><span class="it-time${tCls}">${it.time||"–"}</span>
+        <span class="it-text">${it.text}${map}</span>${tag}</li>`;
+    }).join("");
+    return `<div class="day${isToday?" today":""}" id="day-${di}">
+      <div class="day-head">
+        <span class="day-date">${dateLabel(date)}</span>
+        <span class="day-wd">${WEEK[date.getDay()]}</span>
+        <span class="day-title">${d.title||""}</span>
+      </div>
+      <ul class="items">${items}</ul>
+    </div>`;
+  }).join("");
+
+  // checklist
+  let checkHTML = "";
+  if(trip.checklist && trip.checklist.length){
+    const checklist=getChecklist(trip), done = checklist.filter(c=>c.done).length;
+    const lis = checklist.map((c,i)=>`<li><button class="box ${c.done?"on":""}" data-check="${i}" aria-label="${c.done?"未完了に戻す":"完了にする"}">${c.done?"✓":""}</button>
+      <span class="ck-text ${c.done?"on":""}">${c.text}</span></li>`).join("");
+    checkHTML = `<div class="sec mono">Checklist — ${done}/${checklist.length}</div>
+      <ul class="check">${lis}</ul>`;
+  }
+
+  // costs grouped
+  let costHTML = "";
+  if(trip.costs && trip.costs.length){
+    const costs=[...trip.costs,...getExtraCosts(trip)];
+    const groups = {};
+    costs.forEach(c=>{ (groups[c.group]=groups[c.group]||[]).push(c); });
+    let rows = "";
+    let total = 0;
+    Object.keys(groups).forEach(g=>{
+      rows += `<tr class="grp-row"><td colspan="3">${g}</td></tr>`;
+      groups[g].forEach(c=>{
+        total += c.amount;
+        const paid = c.paid
+          ? `<span class="paid yes">支払済</span>`
+          : `<span class="paid">未</span>`;
+        const note = c.note ? ` <span style="color:var(--ink-2);font-size:12px">/ ${c.note}</span>` : "";
+        rows += `<tr><td>${c.item}${note}</td><td>${paid}</td>
+          <td class="num">${fmtYen(c.amount)}</td></tr>`;
+      });
+    });
+    const paidTotal=costs.filter(c=>c.paid).reduce((s,c)=>s+c.amount,0), unpaidTotal=total-paidTotal;
+    const budgetHTML=trip.budget?`<span>予算差額<b>${fmtYen(trip.budget-total)}</b></span>`:"";
+    costHTML = `<div class="sec mono">Costs</div><div class="cost-summary"><span>合計<b>${fmtYen(total)}</b></span><span>支払済<b>${fmtYen(paidTotal)}</b></span><span>未払い<b>${fmtYen(unpaidTotal)}</b></span><span>1人あたり<b>${fmtYen(Math.ceil(total/(trip.people||1)))}</b></span>${budgetHTML}</div>
+      <table class="cost">
+        <thead><tr><th>項目</th><th>支払</th><th style="text-align:right">金額</th></tr></thead>
+        <tbody>${rows}</tbody>
+        <tfoot><tr><td>合計</td><td></td><td class="num">${fmtYen(total)}</td></tr></tfoot>
+      </table>
+      <div class="cost-note">※ 飲食代・入場料・現地交通費等は別途。</div>
+      <form class="expense-form" id="expenseForm"><input name="item" required placeholder="現地支出" aria-label="支出項目"><input name="amount" required type="number" min="0" step="1" placeholder="金額" aria-label="金額"><button type="submit">追加</button></form>`;
+  }
+
+  const next=nextEvent(trip);
+  const nextHTML=next ? `<div class="next-card"><div class="label mono">NEXT EVENT</div><strong>${next.item.time} — ${next.item.text}</strong><small>${dateLabel(next.date)}（${WEEK[next.date.getDay()]}） · ${Math.max(0,Math.round((next.at-new Date())/60000))}分後</small></div>` : "";
+  v.innerHTML = `${nextHTML}
+    <div class="trip-head">
+      <h2>${trip.title}</h2>
+      ${countdownHTML(trip)}
+    </div>
+    <p class="trip-sub">${trip.subtitle||""} <span class="mono" style="font-size:11px;margin-left:8px">${range}</span></p>
+    <div class="sec mono">Itinerary</div>
+    ${days}
+    ${checkHTML}
+    ${costHTML}
+  `;
+  v.querySelectorAll("[data-check]").forEach(btn=>btn.addEventListener("click",()=>{
+    const list=getChecklist(trip), i=Number(btn.dataset.check); list[i].done=!list[i].done; localStorage.setItem(storageKey(trip),JSON.stringify(list)); renderTrip(trip);
+  }));
+  const expenseForm=document.getElementById("expenseForm");
+  if(expenseForm) expenseForm.addEventListener("submit",e=>{e.preventDefault(); const f=new FormData(expenseForm); const extra=getExtraCosts(trip); extra.push({group:"現地",item:String(f.get("item")),amount:Number(f.get("amount")),paid:true,note:"端末入力"}); localStorage.setItem(costKey(trip),JSON.stringify(extra)); renderTrip(trip);});
+}
+
+function init(){
+  const trips = (window.TRIPS||[]).slice();
+  const tabs = document.getElementById("tabs");
+  if(!trips.length){
+    document.getElementById("view").innerHTML =
+      "<p style='color:var(--ink-2)'>data.js に旅行が登録されていません。</p>";
+    tabs.style.display="none";
+    return;
+  }
+  // 直近の未来／進行中を先頭に、次いで開始日の新しい順
+  const today = new Date();
+  trips.sort((a,b)=>{
+    const fa = daysBetween(today, new Date(a.end+"T00:00:00")) >= 0;
+    const fb = daysBetween(today, new Date(b.end+"T00:00:00")) >= 0;
+    if(fa !== fb) return fa ? -1 : 1;          // 未終了を先に
+    return fa ? (a.start < b.start ? -1 : 1)   // 未終了は近い順
+             : (a.start > b.start ? -1 : 1);   // 終了済は新しい順
+  });
+
+  tabs.innerHTML = trips.map((t,i)=>
+    `<button data-i="${i}" class="${i===0?"active":""}">${t.title}
+      <span class="t-date mono">${t.start.replace(/-/g,"/").slice(2)}</span></button>`
+  ).join("");
+  tabs.addEventListener("click", e=>{
+    const btn = e.target.closest("button"); if(!btn) return;
+    [...tabs.children].forEach(b=>b.classList.remove("active"));
+    btn.classList.add("active");
+    const selected=trips[+btn.dataset.i];
+    daySelect.innerHTML='<option value="">日付へ移動</option>'+selected.days.map((d,i)=>`<option value="${i}">${dateLabel(tripDate(selected,d,i))} ${d.title||""}</option>`).join("");
+    renderTrip(selected);
+  });
+  const daySelect=document.getElementById("daySelect");
+  daySelect.innerHTML='<option value="">日付へ移動</option>'+trips[0].days.map((d,i)=>`<option value="${i}">${dateLabel(tripDate(trips[0],d,i))} ${d.title||""}</option>`).join("");
+  document.getElementById("todayBtn").addEventListener("click",()=>{viewMode="today"; document.getElementById("todayBtn").classList.add("active"); document.getElementById("allBtn").classList.remove("active"); renderTrip(activeTrip);});
+  document.getElementById("allBtn").addEventListener("click",()=>{viewMode="all"; document.getElementById("allBtn").classList.add("active"); document.getElementById("todayBtn").classList.remove("active"); renderTrip(activeTrip);});
+  daySelect.addEventListener("change",()=>{ if(daySelect.value!==""){viewMode="all"; renderTrip(activeTrip); document.getElementById("day-"+daySelect.value)?.scrollIntoView({behavior:"smooth"}); daySelect.value="";} });
+  document.getElementById("printBtn").addEventListener("click",()=>window.print());
+  renderTrip(trips[0]);
+}
+init();
+if ("serviceWorker" in navigator && location.protocol !== "file:") navigator.serviceWorker.register("sw.js");
+</script>
+</body>
+</html>

@@ -1,0 +1,10 @@
+{
+  "name": "旅程管理",
+  "short_name": "旅程",
+  "lang": "ja",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#FAF9F6",
+  "theme_color": "#141413",
+  "icons": []
+}

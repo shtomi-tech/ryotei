@@ -1,0 +1,21 @@
+# 依存・生成物
+node_modules/
+__pycache__/
+*.pyc
+*.pyo
+
+# データベース（個人情報・可変データはバージョン管理しない）
+data.js
+data.local.js
+*.db
+*.db-journal
+*.db.bak-*
+data.db.bak*
+
+# バックアップ・一時
+*.bak
+*.bak2
+_削除候補/
+.netlify/
+.DS_Store
+Thumbs.db
