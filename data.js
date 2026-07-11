@@ -29,7 +29,7 @@ window.TRIPS = [
           { time: "17:15", text: "羽田空港 出発", tag: "move" },
           { time: "18:45", text: "函館空港 到着", tag: "move" },
           { time: "", text: "空港連絡バスで函館駅前へ（約20分）", tag: "move" },
-          { time: "", text: "夕食：ラッキーピエロ函館駅前店（函館駅徒歩2分・8:00–23:00無休・名物チャイチキ462円／クレカ不可・現金/PayPay等）", tag: "meal" },
+          { time: "", text: "夕食：ラッキーピエロ函館駅前店", tag: "meal" },
           { time: "", text: "函館駅→はこだてライナーで新函館北斗駅（約15–20分・440円）", tag: "move" },
           { time: "", text: "東横INN 新函館北斗駅南口 泊", tag: "stay" },
         ],
