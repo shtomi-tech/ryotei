@@ -547,8 +547,8 @@ function init(){
   });
   document.getElementById("printBtn").addEventListener("click",()=>window.print());
   annualYear=getAnnualConfig().year||new Date().getFullYear();
-  if(allTrips.length) showTrip(allTrips[0],"all");
-  else renderAnnualDashboard(annualYear);
+  activeTrip=allTrips[0]||null;
+  renderAnnualDashboard(annualYear);
 }
 init();
 if ("serviceWorker" in navigator && location.protocol !== "file:") navigator.serviceWorker.register("sw.js");
