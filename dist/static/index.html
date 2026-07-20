@@ -55,6 +55,7 @@
   .resume-card button,.quarter-add,.completion-link{background:var(--ink);color:var(--ivory);border:1px solid var(--ink);padding:9px 12px;min-height:44px;font:12px inherit;cursor:pointer;}
   .quarter-add{justify-self:start;background:var(--ivory);color:var(--ink);}
   .resume-card button:focus-visible,.quarter-add:focus-visible,.completion-link:focus-visible,.empty-state button:focus-visible,.save-status button:focus-visible{outline:3px solid var(--clay);outline-offset:2px;}
+  .section-jump{display:inline-flex;align-items:center;color:var(--ink);text-decoration:underline;min-height:44px;padding:8px 4px;font-size:12px;}.section-jump:focus-visible{outline:3px solid var(--clay);outline-offset:2px;}
   .completion-card{border:2px solid var(--line);padding:16px;background:var(--ivory-2);margin:0 0 24px;}
   .completion-card h3{margin:0 0 8px;font-size:20px;}.completion-card p{margin:4px 0;color:var(--ink-2);font-size:13px;}
   .completion-card ul{margin:10px 0 14px;padding-left:20px;font-size:13px;}.completion-card li+li{margin-top:4px;}
@@ -90,6 +91,10 @@
   .entry-open,.plan-delete{flex:0 0 auto;border:0;background:transparent;color:var(--ink);text-decoration:underline;padding:4px;min-height:44px;font:11px inherit;cursor:pointer;}
   .entry-open:focus-visible,.plan-delete:focus-visible,.plan-form summary:focus-visible{outline:3px solid var(--clay);outline-offset:2px;}
   .quarter-empty{color:var(--ink-2);font-size:12px;margin:0;}
+  .month-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;}
+  .month-card{border:1.5px solid var(--line);padding:14px;min-height:150px;display:grid;align-content:start;gap:10px;}
+  .month-card.is-empty{border-color:var(--line-soft);}.month-card h3{margin:0;font-size:20px;}.month-card-head{display:flex;align-items:baseline;justify-content:space-between;gap:8px;border-bottom:1px solid var(--line-soft);padding-bottom:8px;}
+  .month-card-count{color:var(--ink-2);font-size:11px;}.month-entry-list{list-style:none;margin:0;padding:0;display:grid;gap:8px;}.month-entry{display:grid;grid-template-columns:auto 1fr;gap:7px;align-items:start;font-size:12px;}.month-entry-main{min-width:0;}.month-entry-title{display:block;font-weight:700;overflow-wrap:anywhere;}.month-entry-meta{display:block;color:var(--ink-2);font-size:10px;margin-top:2px;}.month-entry .entry-open{font-size:10px;grid-column:2;justify-self:start;min-height:36px;padding:3px 4px;}.month-unassigned{margin:12px 0 0;color:var(--ink-2);font-size:12px;}
   .plan-form{border:1.5px solid var(--line);padding:14px;display:grid;gap:12px;}
   .plan-form summary{cursor:pointer;font-weight:700;min-height:44px;display:flex;align-items:center;}
   .plan-form form{display:grid;gap:12px;max-width:680px;}
@@ -174,6 +179,7 @@
     .year-summary-grid{grid-template-columns:repeat(2,1fr);gap:16px 12px;}
     .year-stat:nth-child(3){border-left:0;padding-left:0;}
     .quarter-grid{grid-template-columns:1fr;}
+    .month-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;}.month-card{padding:11px;min-height:130px;}.month-card h3{font-size:17px;}.month-entry{font-size:11px;}
     .plan-fields{grid-template-columns:1fr;}
   }
 </style>
@@ -210,6 +216,7 @@ const QUARTERS = [
   { number:3, label:"Q3", months:"7–9月", startMonth:6, endMonth:8 },
   { number:4, label:"Q4", months:"10–12月", startMonth:9, endMonth:11 },
 ];
+const MONTHS = ["1月","2月","3月","4月","5月","6月","7月","8月","9月","10月","11月","12月"];
 let activeTrip = null;
 let viewMode = "all";
 let screenMode = "trip";
@@ -293,6 +300,15 @@ function isLongRange(start,end){
   return Boolean(duration && duration.days >= goal.minDays && duration.nights >= goal.minNights);
 }
 function quarterForDate(date){ return date ? Math.floor(date.getMonth()/3)+1 : null; }
+function rangeOverlapsMonth(start,end,year,monthIndex){
+  const startDate=parseDate(start), endDate=parseDate(end);
+  if(!startDate || !endDate) return false;
+  const monthStart=new Date(year,monthIndex,1), monthEnd=new Date(year,monthIndex+1,0);
+  return startDate <= monthEnd && endDate >= monthStart;
+}
+function rangeOverlapsYear(start,end,year){
+  return [...Array(12).keys()].some(month=>rangeOverlapsMonth(start,end,year,month));
+}
 function rangeLabel(start,end){
   const startDate=parseDate(start), endDate=parseDate(end);
   if(!startDate || !endDate) return "日程未登録";
@@ -512,8 +528,8 @@ function renderAnnualDashboard(year){
   screenMode="annual";
   updateModeButtons();
   const config=getAnnualConfig(), goal=config.goal;
-  const trips=allTrips.filter(trip=>yearOf(trip.start) === annualYear).map(trip=>annualEntry("trip",trip));
-  const plans=getAnnualPlans().map(plan=>annualEntry("plan",plan)).filter(plan=>plan.year === annualYear);
+  const trips=allTrips.filter(trip=>rangeOverlapsYear(trip.start,trip.end,annualYear)).map(trip=>annualEntry("trip",trip));
+  const plans=getAnnualPlans().map(plan=>annualEntry("plan",plan)).filter(plan=>plan.year === annualYear || rangeOverlapsYear(plan.start,plan.end,annualYear));
   const entries=[...trips,...plans].sort((a,b)=>(a.quarter||9)-(b.quarter||9) || a.start.localeCompare(b.start) || a.title.localeCompare(b.title));
   const quarterViews=QUARTERS.map(quarter=>{
     const quarterEntries=entries.filter(entry=>entry.quarter === quarter.number);
@@ -545,11 +561,25 @@ function renderAnnualDashboard(year){
     const addQuarterHTML=`<button class="quarter-add" type="button" data-plan-quarter="${view.quarter.number}" data-plan-start="${quarterStart}" data-plan-end="${quarterEnd}">この四半期に旅行を追加</button>`;
     return `<article class="quarter-card is-${view.status.key}"><div class="quarter-head"><strong>${view.quarter.label}</strong><span class="quarter-range">${view.quarter.months}</span><span class="q-status ${view.status.key}">${view.status.label}</span></div><div class="quarter-target">目安：${goal.minNights}泊${goal.minDays}日以上</div>${entryHTML}${view.entries.length ? "" : addQuarterHTML}</article>`;
   }).join("");
+  const monthCards=MONTHS.map((monthLabel,monthIndex)=>{
+    const monthEntries=entries.filter(entry=>rangeOverlapsMonth(entry.start,entry.end,annualYear,monthIndex));
+    const entryHTML=monthEntries.length ? `<ul class="month-entry-list">${monthEntries.map(entry=>{
+      const kindClass=entry.kind === "plan" ? "plan" : entry.kind === "record" ? "record" : "";
+      const kindLabel=entry.kind === "plan" ? "計画" : entry.kind === "record" ? "実績" : "旅程";
+      const open=entry.kind === "trip" ? `<button class="entry-open" type="button" data-trip-id="${escapeHTML(entry.id)}">旅程を開く</button>` : "";
+      const detailNote=entry.kind === "record" && entry.source !== "local" ? " · 詳細旅程未登録" : "";
+      return `<li class="month-entry"><span class="entry-kind ${kindClass}">${kindLabel}</span><div class="month-entry-main"><span class="month-entry-title">${escapeHTML(entry.title)}</span><span class="month-entry-meta">${escapeHTML(rangeLabel(entry.start,entry.end))} · ${durationLabel(durationForRange(entry.start,entry.end))}${detailNote}</span>${open}</div></li>`;
+    }).join("")}</ul>` : `<p class="quarter-empty">旅行なし</p>`;
+    return `<article class="month-card${monthEntries.length ? "" : " is-empty"}"><div class="month-card-head"><h3>${monthLabel}</h3><span class="month-card-count">${monthEntries.length ? `${monthEntries.length}件` : "予定なし"}</span></div>${entryHTML}</article>`;
+  }).join("");
+  const monthUnassigned=entries.filter(entry=>!parseDate(entry.start) || !parseDate(entry.end));
+  const monthUnassignedHTML=monthUnassigned.length ? `<p class="month-unassigned">月未定：${monthUnassigned.map(entry=>escapeHTML(entry.title)).join("、")}</p>` : "";
   document.getElementById("view").innerHTML=`<section class="year-dashboard">
-    <div class="year-head"><div><div class="kicker mono">Annual Dashboard</div><h2>${annualYear}年の旅行計画</h2><p>3か月に1回、${goal.minNights}泊${goal.minDays}日以上の旅行を目安にします。</p></div><label class="year-switch">表示する年<select id="annualYearSelect" aria-label="表示する年">${yearOptions}</select></label></div>
+    <div class="year-head"><div><div class="kicker mono">Annual Dashboard</div><h2>${annualYear}年の旅行計画</h2><p>3か月に1回、${goal.minNights}泊${goal.minDays}日以上の旅行を目安にします。</p></div><a class="section-jump" href="#monthly-plan">月別の日程へ</a><label class="year-switch">表示する年<select id="annualYearSelect" aria-label="表示する年">${yearOptions}</select></label></div>
     ${resumeHTML}
     <div class="year-summary"><div class="year-summary-title mono">QUARTERLY TARGET · ${goal.quarters} QUARTERS</div><div class="year-summary-grid"><div class="year-stat"><span>達成</span><b>${doneCount}/${goal.quarters}</b><small>終了した長期旅行</small></div><div class="year-stat"><span>進行中</span><b>${activeCount}</b><small>現在の長期旅行</small></div><div class="year-stat"><span>計画あり</span><b>${plannedCount}</b><small>旅程・計画を登録済み</small></div><div class="year-stat"><span>未計画</span><b>${Math.max(0,missingCount)}</b><small>四半期</small></div></div><p class="goal-note">「達成」は終了日を過ぎた${goal.minNights}泊${goal.minDays}日以上の旅程です。同じ四半期に複数登録しても、目安の達成数は1つとして数えます。</p></div>
     <div class="sec mono">Quarterly Plan</div><div class="quarter-grid">${quarterCards}</div>
+    <div class="sec mono" id="monthly-plan">Monthly Plan</div><div class="month-grid">${monthCards}</div>${monthUnassignedHTML}
     <details class="plan-form" id="planFormDetails"><summary>旅行計画を追加</summary><form id="planForm"><div class="plan-fields"><label class="plan-field">旅行名<input name="title" required maxlength="80" placeholder="例：秋の温泉旅行"></label><label class="plan-field">出発日<input name="start" type="date" required value="${defaultStart}"></label><label class="plan-field">帰着日<input name="end" type="date" required value="${defaultEnd}"></label></div><label class="plan-field">メモ（任意）<textarea name="note" maxlength="200" placeholder="行き先、同行者、予約状況など"></textarea></label><button type="submit">この計画を保存</button><p class="plan-note">計画はこの端末に保存されます。実際の旅程の詳細は、従来どおり data.js に登録してください。</p></form></details>
   </section>`;
   document.getElementById("annualYearSelect")?.addEventListener("change",event=>renderAnnualDashboard(Number(event.target.value)));
