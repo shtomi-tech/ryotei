@@ -24,14 +24,15 @@ py C:\Users\shtom\dev\portal\launcher.py
 
 ## 年間計画のデータ形式（任意）
 
-`data.js` には、必要に応じて `window.TRAVEL_PLAN` を追加できます。ダッシュボード上で追加した計画と併せて表示されます。
+`data.js` には、必要に応じて `window.TRAVEL_PLAN` を追加できます。ダッシュボード上で追加した計画と併せて表示されます。日程が分からない四半期の実績は、`year` と `quarter` だけを指定して登録できます。その場合は「日程未登録」と表示され、3泊4日以上の判定対象にはなりません。
 
 ```js
 window.TRAVEL_PLAN = {
   year: 2026,
   goal: { quarters: 4, minNights: 3, minDays: 4 },
   plans: [
-    { id: "q4-onsen", title: "秋の温泉旅行", start: "2026-10-09", end: "2026-10-12", note: "" }
+    { id: "q4-onsen", title: "秋の温泉旅行", start: "2026-10-09", end: "2026-10-12", note: "" },
+    { id: "q2-shikoku", title: "四国旅行", year: 2026, quarter: 2, note: "日程未登録" }
   ]
 };
 ```

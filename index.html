@@ -260,7 +260,7 @@ function isLongRange(start,end){
 function quarterForDate(date){ return date ? Math.floor(date.getMonth()/3)+1 : null; }
 function rangeLabel(start,end){
   const startDate=parseDate(start), endDate=parseDate(end);
-  if(!startDate || !endDate) return "日付不明";
+  if(!startDate || !endDate) return "日程未登録";
   return `${dateLabel(startDate)} – ${dateLabel(endDate)}`;
 }
 function todayStart(){ const now=new Date(); return new Date(now.getFullYear(),now.getMonth(),now.getDate()); }
@@ -274,7 +274,11 @@ function actualState(start,end){
 function getYearOptions(){
   const years = new Set([new Date().getFullYear(), getAnnualConfig().year]);
   allTrips.forEach(trip=>{ if(yearOf(trip.start)) years.add(yearOf(trip.start)); });
-  getAnnualPlans().forEach(plan=>{ if(yearOf(plan.start)) years.add(yearOf(plan.start)); });
+  getAnnualPlans().forEach(plan=>{
+    const planYear=Number(plan.year);
+    if(Number.isInteger(planYear) && planYear > 0) years.add(planYear);
+    else if(yearOf(plan.start)) years.add(yearOf(plan.start));
+  });
   return [...years].sort((a,b)=>b-a);
 }
 function getChecklist(trip){
@@ -420,13 +424,17 @@ function showTrip(trip, mode="all"){
   renderTrip(trip);
 }
 function annualEntry(kind,data){
+  const dataYear=Number(data.year), dataQuarter=Number(data.quarter);
   return {
     kind,
     id:String(data.id||""),
     title:String(data.title||"名称未設定"),
     start:String(data.start||""),
     end:String(data.end||""),
+    year:Number.isInteger(dataYear) && dataYear > 0 ? dataYear : yearOf(data.start),
+    quarter:Number.isInteger(dataQuarter) && dataQuarter >= 1 && dataQuarter <= 4 ? dataQuarter : quarterForDate(parseDate(data.start)),
     note:String(data.note||""),
+    source:data.source || "",
     data,
   };
 }
@@ -435,6 +443,7 @@ function getQuarterStatus(entries){
   if(longEntries.some(entry=>entry.kind === "trip" && actualState(entry.start,entry.end) === "done")) return { key:"done", label:"達成" };
   if(longEntries.some(entry=>entry.kind === "trip" && actualState(entry.start,entry.end) === "active")) return { key:"active", label:"進行中" };
   if(longEntries.length) return { key:"planned", label:"計画あり" };
+  if(entries.some(entry=>entry.quarter && !entry.start && !entry.end)) return { key:"planned", label:"計画あり" };
   if(entries.length) return { key:"short", label:"長期旅行未登録" };
   return { key:"empty", label:"未計画" };
 }
@@ -444,10 +453,10 @@ function renderAnnualDashboard(year){
   updateModeButtons();
   const config=getAnnualConfig(), goal=config.goal;
   const trips=allTrips.filter(trip=>yearOf(trip.start) === annualYear).map(trip=>annualEntry("trip",trip));
-  const plans=getAnnualPlans().filter(plan=>yearOf(plan.start) === annualYear).map(plan=>annualEntry("plan",plan));
-  const entries=[...trips,...plans].sort((a,b)=>a.start.localeCompare(b.start));
+  const plans=getAnnualPlans().map(plan=>annualEntry("plan",plan)).filter(plan=>plan.year === annualYear);
+  const entries=[...trips,...plans].sort((a,b)=>(a.quarter||9)-(b.quarter||9) || a.start.localeCompare(b.start) || a.title.localeCompare(b.title));
   const quarterViews=QUARTERS.map(quarter=>{
-    const quarterEntries=entries.filter(entry=>quarterForDate(parseDate(entry.start)) === quarter.number);
+    const quarterEntries=entries.filter(entry=>entry.quarter === quarter.number);
     return { quarter, entries:quarterEntries, status:getQuarterStatus(quarterEntries) };
   });
   const doneCount=quarterViews.filter(view=>view.status.key === "done").length;
@@ -458,11 +467,11 @@ function renderAnnualDashboard(year){
   const defaultStart=`${annualYear}-01-01`, defaultEnd=`${annualYear}-01-04`;
   const quarterCards=quarterViews.map(view=>{
     const entryHTML=view.entries.length ? `<ul class="annual-entry-list">${view.entries.map(entry=>{
-      const longLabel=isLongRange(entry.start,entry.end) ? "目安を満たす" : "短期";
+      const longLabel=isLongRange(entry.start,entry.end) ? "目安を満たす" : entry.start && entry.end ? "短期" : "日程未登録";
       const note=entry.note ? ` · ${escapeHTML(entry.note)}` : "";
       const open=entry.kind === "trip"
         ? `<button class="entry-open" type="button" data-trip-id="${escapeHTML(entry.id)}">旅程を開く</button>`
-        : `<button class="plan-delete" type="button" data-plan-delete="${escapeHTML(entry.id)}">削除</button>`;
+        : entry.source === "local" ? `<button class="plan-delete" type="button" data-plan-delete="${escapeHTML(entry.id)}">削除</button>` : "";
       return `<li class="annual-entry"><span class="entry-kind ${entry.kind === "plan" ? "plan" : ""}">${entry.kind === "plan" ? "計画" : "旅程"}</span><div class="annual-entry-main"><span class="annual-entry-title">${escapeHTML(entry.title)}</span><span class="annual-entry-meta">${escapeHTML(rangeLabel(entry.start,entry.end))} · ${durationLabel(durationForRange(entry.start,entry.end))} · ${longLabel}${note}</span></div>${open}</li>`;
     }).join("")}</ul>` : `<p class="quarter-empty">この四半期の旅行はまだ登録されていません。</p>`;
     return `<article class="quarter-card is-${view.status.key}"><div class="quarter-head"><strong>${view.quarter.label}</strong><span class="quarter-range">${view.quarter.months}</span><span class="q-status ${view.status.key}">${view.status.label}</span></div><div class="quarter-target">目安：${goal.minNights}泊${goal.minDays}日以上</div>${entryHTML}</article>`;

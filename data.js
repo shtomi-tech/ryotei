@@ -15,6 +15,20 @@
  *   costs[]  : { group:"航空券", item:"...", amount:12345, paid:true, note:"" }
  *   people   : 人数（任意、1人あたり表示用） / budget: 予算（任意）
  */
+window.TRAVEL_PLAN = {
+  year: 2026,
+  goal: { quarters: 4, minNights: 3, minDays: 4 },
+  plans: [
+    {
+      id: "shikoku2026",
+      title: "四国旅行",
+      year: 2026,
+      quarter: 2,
+      note: "Q2の旅行実績。日程未登録",
+    },
+  ],
+};
+
 window.TRIPS = [
   {
     id: "hokkaido2026",
