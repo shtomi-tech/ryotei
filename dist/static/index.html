@@ -426,7 +426,7 @@ function showTrip(trip, mode="all"){
 function annualEntry(kind,data){
   const dataYear=Number(data.year), dataQuarter=Number(data.quarter);
   return {
-    kind,
+    kind:kind === "plan" && data.actual ? "record" : kind,
     id:String(data.id||""),
     title:String(data.title||"名称未設定"),
     start:String(data.start||""),
@@ -440,8 +440,8 @@ function annualEntry(kind,data){
 }
 function getQuarterStatus(entries){
   const longEntries=entries.filter(entry=>isLongRange(entry.start,entry.end));
-  if(longEntries.some(entry=>entry.kind === "trip" && actualState(entry.start,entry.end) === "done")) return { key:"done", label:"達成" };
-  if(longEntries.some(entry=>entry.kind === "trip" && actualState(entry.start,entry.end) === "active")) return { key:"active", label:"進行中" };
+  if(longEntries.some(entry=>["trip","record"].includes(entry.kind) && actualState(entry.start,entry.end) === "done")) return { key:"done", label:"達成" };
+  if(longEntries.some(entry=>["trip","record"].includes(entry.kind) && actualState(entry.start,entry.end) === "active")) return { key:"active", label:"進行中" };
   if(longEntries.length) return { key:"planned", label:"計画あり" };
   if(entries.some(entry=>entry.quarter && !entry.start && !entry.end)) return { key:"planned", label:"計画あり" };
   if(entries.length) return { key:"short", label:"長期旅行未登録" };
@@ -472,7 +472,9 @@ function renderAnnualDashboard(year){
       const open=entry.kind === "trip"
         ? `<button class="entry-open" type="button" data-trip-id="${escapeHTML(entry.id)}">旅程を開く</button>`
         : entry.source === "local" ? `<button class="plan-delete" type="button" data-plan-delete="${escapeHTML(entry.id)}">削除</button>` : "";
-      return `<li class="annual-entry"><span class="entry-kind ${entry.kind === "plan" ? "plan" : ""}">${entry.kind === "plan" ? "計画" : "旅程"}</span><div class="annual-entry-main"><span class="annual-entry-title">${escapeHTML(entry.title)}</span><span class="annual-entry-meta">${escapeHTML(rangeLabel(entry.start,entry.end))} · ${durationLabel(durationForRange(entry.start,entry.end))} · ${longLabel}${note}</span></div>${open}</li>`;
+      const kindClass=entry.kind === "plan" ? "plan" : entry.kind === "record" ? "record" : "";
+      const kindLabel=entry.kind === "plan" ? "計画" : entry.kind === "record" ? "実績" : "旅程";
+      return `<li class="annual-entry"><span class="entry-kind ${kindClass}">${kindLabel}</span><div class="annual-entry-main"><span class="annual-entry-title">${escapeHTML(entry.title)}</span><span class="annual-entry-meta">${escapeHTML(rangeLabel(entry.start,entry.end))} · ${durationLabel(durationForRange(entry.start,entry.end))} · ${longLabel}${note}</span></div>${open}</li>`;
     }).join("")}</ul>` : `<p class="quarter-empty">この四半期の旅行はまだ登録されていません。</p>`;
     return `<article class="quarter-card is-${view.status.key}"><div class="quarter-head"><strong>${view.quarter.label}</strong><span class="quarter-range">${view.quarter.months}</span><span class="q-status ${view.status.key}">${view.status.label}</span></div><div class="quarter-target">目安：${goal.minNights}泊${goal.minDays}日以上</div>${entryHTML}</article>`;
   }).join("");

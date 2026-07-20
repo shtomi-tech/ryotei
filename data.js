@@ -23,8 +23,10 @@ window.TRAVEL_PLAN = {
       id: "shikoku2026",
       title: "四国旅行",
       year: 2026,
-      quarter: 2,
-      note: "Q2の旅行実績。日程未登録",
+      start: "2026-04-28",
+      end: "2026-05-04",
+      actual: true,
+      note: "Q2の旅行実績",
     },
   ],
 };
