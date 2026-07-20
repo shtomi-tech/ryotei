@@ -50,6 +50,21 @@
   .year-stat b{display:block;font:24px "SFMono-Regular",Consolas,monospace;margin-top:2px;}
   .year-stat small{color:var(--ink-2);font-size:11px;}
   .goal-note{margin:16px 0 0;padding-top:12px;border-top:1px solid var(--line-soft);font-size:12px;color:var(--ink-2);}
+  .resume-card{border:2px solid var(--line);padding:14px 16px;background:var(--ivory-2);display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;}
+  .resume-card p{margin:0;color:var(--ink-2);font-size:12px;}.resume-card strong{display:block;color:var(--ink);font-size:16px;margin-top:2px;}
+  .resume-card button,.quarter-add,.completion-link{background:var(--ink);color:var(--ivory);border:1px solid var(--ink);padding:9px 12px;min-height:44px;font:12px inherit;cursor:pointer;}
+  .quarter-add{justify-self:start;background:var(--ivory);color:var(--ink);}
+  .resume-card button:focus-visible,.quarter-add:focus-visible,.completion-link:focus-visible,.empty-state button:focus-visible,.save-status button:focus-visible{outline:3px solid var(--clay);outline-offset:2px;}
+  .completion-card{border:2px solid var(--line);padding:16px;background:var(--ivory-2);margin:0 0 24px;}
+  .completion-card h3{margin:0 0 8px;font-size:20px;}.completion-card p{margin:4px 0;color:var(--ink-2);font-size:13px;}
+  .completion-card ul{margin:10px 0 14px;padding-left:20px;font-size:13px;}.completion-card li+li{margin-top:4px;}
+  .completion-link{margin-top:10px;}
+  .empty-state{border:1.5px dashed var(--line-soft);padding:16px;color:var(--ink-2);font-size:13px;margin:0 0 24px;}
+  .empty-state button{margin-top:10px;background:var(--ivory);border:1px solid var(--line);color:var(--ink);padding:8px 12px;min-height:44px;font:12px inherit;cursor:pointer;}
+  .entry-action-note{flex:0 0 auto;color:var(--ink-2);font-size:11px;}
+  .save-status{min-height:24px;margin:0 0 16px;color:var(--ink-2);font-size:12px;}
+  .save-status:empty{display:none;}
+  .save-status button{margin-left:10px;background:var(--ivory);border:1px solid var(--line);color:var(--ink);padding:5px 9px;min-height:36px;font:11px inherit;cursor:pointer;}
   .quarter-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;}
   .quarter-card{border:1.5px solid var(--line);padding:14px;min-height:190px;display:grid;align-content:start;gap:10px;}
   .quarter-card.is-done{border-width:2px;}
@@ -72,7 +87,7 @@
   .annual-entry-meta{display:block;color:var(--ink-2);font-size:11px;margin-top:2px;}
   .entry-kind{flex:0 0 auto;border:1px solid var(--line-soft);padding:1px 5px;color:var(--ink-2);font-size:10px;}
   .entry-kind.plan{border-style:dashed;}
-  .entry-open,.plan-delete{flex:0 0 auto;border:0;background:transparent;color:var(--ink);text-decoration:underline;padding:4px;min-height:36px;font:11px inherit;cursor:pointer;}
+  .entry-open,.plan-delete{flex:0 0 auto;border:0;background:transparent;color:var(--ink);text-decoration:underline;padding:4px;min-height:44px;font:11px inherit;cursor:pointer;}
   .entry-open:focus-visible,.plan-delete:focus-visible,.plan-form summary:focus-visible{outline:3px solid var(--clay);outline-offset:2px;}
   .quarter-empty{color:var(--ink-2);font-size:12px;margin:0;}
   .plan-form{border:1.5px solid var(--line);padding:14px;display:grid;gap:12px;}
@@ -178,9 +193,10 @@
     <select id="daySelect" aria-label="日付へ移動"><option value="">日付へ移動</option></select>
     <button id="printBtn" type="button">印刷</button>
   </div>
+  <p id="saveStatus" class="save-status" role="status" aria-live="polite"></p>
   <main id="view"></main>
 
-  <footer class="mono">Local itinerary · checklist is saved on this device</footer>
+  <footer class="mono">Local itinerary · checklist, expenses, and annual plans are saved on this device</footer>
 </div>
 
 <script src="data.js"></script>
@@ -218,7 +234,26 @@ function dateLabel(d){ return `${String(d.getMonth()+1).padStart(2,"0")}/${Strin
 function sameDay(a,b){ return a.getFullYear()===b.getFullYear()&&a.getMonth()===b.getMonth()&&a.getDate()===b.getDate(); }
 function storageKey(trip){ return `ryotei-checklist-${trip.id}`; }
 function costKey(trip){ return `ryotei-costs-${trip.id}`; }
+function lastTripKey(){ return "ryotei-last-trip-v1"; }
 function getExtraCosts(trip){ try{return JSON.parse(localStorage.getItem(costKey(trip)))||[];}catch(e){return [];} }
+function setSaveStatus(message, action){
+  const status=document.getElementById("saveStatus");
+  if(!status) return;
+  status.textContent="";
+  const text=document.createElement("span"); text.textContent=message; status.appendChild(text);
+  if(action){
+    const button=document.createElement("button"); button.type="button"; button.textContent=action.label;
+    button.addEventListener("click",()=>{ action.run(); }); status.appendChild(button);
+  }
+}
+function writeLastTrip(trip,dayIndex=0){
+  if(!trip) return;
+  localStorage.setItem(lastTripKey(),JSON.stringify({tripId:String(trip.id),dayIndex:Number(dayIndex)||0}));
+}
+function readLastTrip(){
+  try { const saved=JSON.parse(localStorage.getItem(lastTripKey())); return saved && saved.tripId ? saved : null; }
+  catch(e){ return null; }
+}
 function annualPlanKey(){ return "ryotei-annual-plans-v1"; }
 function getAnnualConfig(){
   const config = window.TRAVEL_PLAN || {};
@@ -285,6 +320,25 @@ function getChecklist(trip){
   try { const saved=JSON.parse(localStorage.getItem(storageKey(trip))); return Array.isArray(saved)?saved:trip.checklist||[]; }
   catch(e){ return trip.checklist||[]; }
 }
+function completedTripHTML(trip){
+  const checklist=Array.isArray(trip.checklist) ? getChecklist(trip) : [];
+  const remaining=checklist.filter(item=>!item.done).length;
+  const costs=[...(trip.costs||[]),...getExtraCosts(trip)];
+  const total=costs.reduce((sum,item)=>sum+Number(item.amount||0),0);
+  const duration=durationForRange(trip.start,trip.end);
+  const details=[];
+  if(duration) details.push(`${duration.nights}泊${duration.days}日`);
+  if(checklist.length) details.push(remaining ? `未完了の持ち物 ${remaining}件` : "持ち物チェック完了");
+  if(costs.length) details.push(`記録した費用 ${fmtYen(total)}`);
+  const year=yearOf(trip.start)||annualYear;
+  return `<section class="completion-card" aria-labelledby="completionTitle">
+    <div class="kicker mono">TRIP COMPLETE</div><h3 id="completionTitle">この旅行の記録</h3>
+    <p>${escapeHTML(trip.title)}は終了しました。</p>
+    <ul>${(details.length ? details : ["旅程の記録を確認できます。"]).map(item=>`<li>${escapeHTML(item)}</li>`).join("")}</ul>
+    <p>残った持ち物や費用を確認したら、年間計画に戻って次の旅行を決められます。</p>
+    <button class="completion-link" type="button" data-back-annual="${year}">年間計画へ戻る</button>
+  </section>`;
+}
 function nextEvent(trip){
   const now=new Date();
   for(let di=0;di<trip.days.length;di++){
@@ -322,6 +376,7 @@ function renderTrip(trip){
 
   // days
   const today=new Date();
+  const hasVisibleDay=viewMode !== "today" || trip.days.some((d,di)=>sameDay(tripDate(trip,d,di),today));
   const days = trip.days.map((d,di)=>{
     const date=tripDate(trip,d,di), isToday=sameDay(date,today);
     if(viewMode === "today" && !isToday) return "";
@@ -387,22 +442,27 @@ function renderTrip(trip){
 
   const next=nextEvent(trip);
   const nextHTML=next ? `<div class="next-card"><div class="label mono">NEXT EVENT</div><strong>${next.item.time} — ${next.item.text}</strong><small>${dateLabel(next.date)}（${WEEK[next.date.getDay()]}） · ${Math.max(0,Math.round((next.at-new Date())/60000))}分後</small></div>` : "";
+  const completionHTML=actualState(trip.start,trip.end) === "done" ? completedTripHTML(trip) : "";
+  const emptyTodayHTML=!hasVisibleDay ? `<div class="empty-state">今日の予定はこの旅行に登録されていません。<br><button type="button" data-show-all>全日程を見る</button></div>` : "";
   v.innerHTML = `${nextHTML}
+    ${completionHTML}
     <div class="trip-head">
       <h2>${trip.title}</h2>
       ${countdownHTML(trip)}
     </div>
     <p class="trip-sub">${trip.subtitle||""} <span class="mono" style="font-size:11px;margin-left:8px">${range}</span></p>
     <div class="sec mono">Itinerary</div>
-    ${days}
+    ${hasVisibleDay ? days : emptyTodayHTML}
     ${checkHTML}
     ${costHTML}
   `;
   v.querySelectorAll("[data-check]").forEach(btn=>btn.addEventListener("click",()=>{
-    const list=getChecklist(trip), i=Number(btn.dataset.check); list[i].done=!list[i].done; localStorage.setItem(storageKey(trip),JSON.stringify(list)); renderTrip(trip);
+    const list=getChecklist(trip), i=Number(btn.dataset.check); list[i].done=!list[i].done; localStorage.setItem(storageKey(trip),JSON.stringify(list)); setSaveStatus("チェックリストを保存しました。"); renderTrip(trip);
   }));
   const expenseForm=document.getElementById("expenseForm");
-  if(expenseForm) expenseForm.addEventListener("submit",e=>{e.preventDefault(); const f=new FormData(expenseForm); const extra=getExtraCosts(trip); extra.push({group:"現地",item:String(f.get("item")),amount:Number(f.get("amount")),paid:true,note:"端末入力"}); localStorage.setItem(costKey(trip),JSON.stringify(extra)); renderTrip(trip);});
+  if(expenseForm) expenseForm.addEventListener("submit",e=>{e.preventDefault(); const f=new FormData(expenseForm); const extra=getExtraCosts(trip); extra.push({group:"現地",item:String(f.get("item")),amount:Number(f.get("amount")),paid:true,note:"端末入力"}); localStorage.setItem(costKey(trip),JSON.stringify(extra)); setSaveStatus("現地支出を保存しました。"); renderTrip(trip);});
+  v.querySelector("[data-show-all]")?.addEventListener("click",()=>showTrip(trip,"all",0));
+  v.querySelector("[data-back-annual]")?.addEventListener("click",event=>renderAnnualDashboard(Number(event.currentTarget.dataset.backAnnual)||annualYear));
 }
 
 function updateDaySelect(trip){
@@ -415,9 +475,9 @@ function updateModeButtons(){
   document.getElementById("todayBtn")?.classList.toggle("active",screenMode === "trip" && viewMode === "today");
   document.getElementById("allBtn")?.classList.toggle("active",screenMode === "trip" && viewMode === "all");
 }
-function showTrip(trip, mode="all"){
+function showTrip(trip, mode="all", dayIndex=0){
   if(!trip) return;
-  activeTrip=trip; viewMode=mode; screenMode="trip";
+  activeTrip=trip; viewMode=mode; screenMode="trip"; writeLastTrip(trip,dayIndex);
   updateModeButtons();
   updateDaySelect(trip);
   document.querySelectorAll("#tabs button").forEach(btn=>btn.classList.toggle("active",allTrips[Number(btn.dataset.i)]?.id === trip.id));
@@ -464,6 +524,9 @@ function renderAnnualDashboard(year){
   const plannedCount=quarterViews.filter(view=>view.status.key === "planned").length;
   const missingCount=goal.quarters-doneCount-activeCount-plannedCount;
   const yearOptions=getYearOptions().map(option=>`<option value="${option}" ${option===annualYear?"selected":""}>${option}年</option>`).join("");
+  const lastTripState=readLastTrip();
+  const resumeTrip=lastTripState ? allTrips.find(trip=>String(trip.id) === String(lastTripState.tripId)) : null;
+  const resumeHTML=resumeTrip ? `<div class="resume-card"><div><div class="kicker mono">CONTINUE</div><p>前回開いていた旅程</p><strong>${escapeHTML(resumeTrip.title)}</strong></div><button type="button" data-resume-trip="${escapeHTML(resumeTrip.id)}">旅程を再開</button></div>` : "";
   const defaultStart=`${annualYear}-01-01`, defaultEnd=`${annualYear}-01-04`;
   const quarterCards=quarterViews.map(view=>{
     const entryHTML=view.entries.length ? `<ul class="annual-entry-list">${view.entries.map(entry=>{
@@ -474,24 +537,52 @@ function renderAnnualDashboard(year){
         : entry.source === "local" ? `<button class="plan-delete" type="button" data-plan-delete="${escapeHTML(entry.id)}">削除</button>` : "";
       const kindClass=entry.kind === "plan" ? "plan" : entry.kind === "record" ? "record" : "";
       const kindLabel=entry.kind === "plan" ? "計画" : entry.kind === "record" ? "実績" : "旅程";
-      return `<li class="annual-entry"><span class="entry-kind ${kindClass}">${kindLabel}</span><div class="annual-entry-main"><span class="annual-entry-title">${escapeHTML(entry.title)}</span><span class="annual-entry-meta">${escapeHTML(rangeLabel(entry.start,entry.end))} · ${durationLabel(durationForRange(entry.start,entry.end))} · ${longLabel}${note}</span></div>${open}</li>`;
+      const detailNote=entry.kind === "record" && entry.source !== "local" ? `<span class="entry-action-note">詳細旅程未登録</span>` : "";
+      return `<li class="annual-entry"><span class="entry-kind ${kindClass}">${kindLabel}</span><div class="annual-entry-main"><span class="annual-entry-title">${escapeHTML(entry.title)}</span><span class="annual-entry-meta">${escapeHTML(rangeLabel(entry.start,entry.end))} · ${durationLabel(durationForRange(entry.start,entry.end))} · ${longLabel}${note}</span></div>${open}${detailNote}</li>`;
     }).join("")}</ul>` : `<p class="quarter-empty">この四半期の旅行はまだ登録されていません。</p>`;
-    return `<article class="quarter-card is-${view.status.key}"><div class="quarter-head"><strong>${view.quarter.label}</strong><span class="quarter-range">${view.quarter.months}</span><span class="q-status ${view.status.key}">${view.status.label}</span></div><div class="quarter-target">目安：${goal.minNights}泊${goal.minDays}日以上</div>${entryHTML}</article>`;
+    const quarterStart=`${annualYear}-${String(view.quarter.startMonth+1).padStart(2,"0")}-01`;
+    const quarterEnd=`${annualYear}-${String(view.quarter.startMonth+1).padStart(2,"0")}-04`;
+    const addQuarterHTML=`<button class="quarter-add" type="button" data-plan-quarter="${view.quarter.number}" data-plan-start="${quarterStart}" data-plan-end="${quarterEnd}">この四半期に旅行を追加</button>`;
+    return `<article class="quarter-card is-${view.status.key}"><div class="quarter-head"><strong>${view.quarter.label}</strong><span class="quarter-range">${view.quarter.months}</span><span class="q-status ${view.status.key}">${view.status.label}</span></div><div class="quarter-target">目安：${goal.minNights}泊${goal.minDays}日以上</div>${entryHTML}${view.entries.length ? "" : addQuarterHTML}</article>`;
   }).join("");
   document.getElementById("view").innerHTML=`<section class="year-dashboard">
     <div class="year-head"><div><div class="kicker mono">Annual Dashboard</div><h2>${annualYear}年の旅行計画</h2><p>3か月に1回、${goal.minNights}泊${goal.minDays}日以上の旅行を目安にします。</p></div><label class="year-switch">表示する年<select id="annualYearSelect" aria-label="表示する年">${yearOptions}</select></label></div>
+    ${resumeHTML}
     <div class="year-summary"><div class="year-summary-title mono">QUARTERLY TARGET · ${goal.quarters} QUARTERS</div><div class="year-summary-grid"><div class="year-stat"><span>達成</span><b>${doneCount}/${goal.quarters}</b><small>終了した長期旅行</small></div><div class="year-stat"><span>進行中</span><b>${activeCount}</b><small>現在の長期旅行</small></div><div class="year-stat"><span>計画あり</span><b>${plannedCount}</b><small>旅程・計画を登録済み</small></div><div class="year-stat"><span>未計画</span><b>${Math.max(0,missingCount)}</b><small>四半期</small></div></div><p class="goal-note">「達成」は終了日を過ぎた${goal.minNights}泊${goal.minDays}日以上の旅程です。同じ四半期に複数登録しても、目安の達成数は1つとして数えます。</p></div>
     <div class="sec mono">Quarterly Plan</div><div class="quarter-grid">${quarterCards}</div>
     <details class="plan-form" id="planFormDetails"><summary>旅行計画を追加</summary><form id="planForm"><div class="plan-fields"><label class="plan-field">旅行名<input name="title" required maxlength="80" placeholder="例：秋の温泉旅行"></label><label class="plan-field">出発日<input name="start" type="date" required value="${defaultStart}"></label><label class="plan-field">帰着日<input name="end" type="date" required value="${defaultEnd}"></label></div><label class="plan-field">メモ（任意）<textarea name="note" maxlength="200" placeholder="行き先、同行者、予約状況など"></textarea></label><button type="submit">この計画を保存</button><p class="plan-note">計画はこの端末に保存されます。実際の旅程の詳細は、従来どおり data.js に登録してください。</p></form></details>
   </section>`;
   document.getElementById("annualYearSelect")?.addEventListener("change",event=>renderAnnualDashboard(Number(event.target.value)));
+  document.querySelectorAll("[data-resume-trip]").forEach(button=>button.addEventListener("click",()=>{
+    const state=readLastTrip(), trip=allTrips.find(item=>String(item.id) === button.dataset.resumeTrip);
+    if(!trip) return;
+    showTrip(trip,"all",Number(state?.dayIndex)||0);
+    if(state?.dayIndex) document.getElementById("day-"+Number(state.dayIndex))?.scrollIntoView({behavior:"smooth"});
+  }));
+  document.querySelectorAll("[data-plan-quarter]").forEach(button=>button.addEventListener("click",()=>{
+    const details=document.getElementById("planFormDetails"), form=document.getElementById("planForm");
+    if(!details || !form) return;
+    details.open=true;
+    form.elements.start.value=button.dataset.planStart;
+    form.elements.end.value=button.dataset.planEnd;
+    details.scrollIntoView({behavior:"smooth",block:"start"});
+    form.elements.title.focus();
+  }));
   document.querySelectorAll("[data-trip-id]").forEach(button=>button.addEventListener("click",()=>{
     const trip=allTrips.find(item=>String(item.id) === button.dataset.tripId);
     showTrip(trip,"all");
   }));
   document.querySelectorAll("[data-plan-delete]").forEach(button=>button.addEventListener("click",()=>{
-    writeLocalPlans(readLocalPlans().filter(plan=>String(plan.id) !== button.dataset.planDelete));
+    const plans=readLocalPlans(), deletedIndex=plans.findIndex(plan=>String(plan.id) === button.dataset.planDelete);
+    if(deletedIndex < 0) return;
+    const deletedPlan=plans[deletedIndex];
+    if(!window.confirm(`「${deletedPlan.title||"旅行計画"}」を削除しますか？`)) return;
+    writeLocalPlans(plans.filter(plan=>String(plan.id) !== button.dataset.planDelete));
     renderAnnualDashboard(annualYear);
+    setSaveStatus("旅行計画を削除しました。",{label:"元に戻す",run:()=>{
+      const current=readLocalPlans(); current.splice(Math.min(deletedIndex,current.length),0,deletedPlan);
+      writeLocalPlans(current); renderAnnualDashboard(annualYear); setSaveStatus("旅行計画を復元しました。");
+    }});
   }));
   document.getElementById("planForm")?.addEventListener("submit",event=>{
     event.preventDefault();
@@ -505,6 +596,7 @@ function renderAnnualDashboard(year){
     writeLocalPlans(localPlans);
     annualYear=yearOf(start)||annualYear;
     renderAnnualDashboard(annualYear);
+    setSaveStatus("旅行計画をこの端末に保存しました。");
   });
 }
 
@@ -540,7 +632,7 @@ function init(){
   daySelect.addEventListener("change",()=>{
     if(daySelect.value!=="" && activeTrip){
       const index=daySelect.value;
-      showTrip(activeTrip,"all");
+      showTrip(activeTrip,"all",Number(index));
       document.getElementById("day-"+index)?.scrollIntoView({behavior:"smooth"});
       daySelect.value="";
     }
