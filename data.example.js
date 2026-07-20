@@ -1,4 +1,10 @@
-/* Copy this file to data.local.js and add personal trips. */
+/* Copy this file to data.js and add personal trips. */
+window.TRAVEL_PLAN = {
+  year: 2026,
+  goal: { quarters: 4, minNights: 3, minDays: 4 },
+  plans: []
+};
+
 window.TRIPS = [{
   id: "sample",
   title: "サンプル旅行",

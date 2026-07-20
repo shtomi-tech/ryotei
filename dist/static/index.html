@@ -17,7 +17,7 @@
   .mono{font-family:"SFMono-Regular",Consolas,"Courier New",monospace;text-transform:uppercase;letter-spacing:.12em;}
   .wrap{max-width:900px;margin:0 auto;padding:40px 24px 80px;}
   .toolbar{display:flex;gap:8px;flex-wrap:wrap;margin:0 0 24px;}
-  .toolbar button,.toolbar select{background:var(--ivory);border:1.5px solid var(--line);color:var(--ink);padding:9px 12px;font:12px inherit;cursor:pointer;}
+  .toolbar button,.toolbar select{background:var(--ivory);border:1.5px solid var(--line);color:var(--ink);padding:9px 12px;min-height:44px;font:12px inherit;cursor:pointer;}
   .toolbar button.active{background:var(--ink);color:var(--ivory);}
   .toolbar button:focus-visible,.toolbar select:focus-visible,nav.trips button:focus-visible{outline:3px solid var(--clay);outline-offset:2px;}
   .next-card{border:2px solid var(--line);padding:14px 16px;margin:0 0 24px;background:var(--ivory-2);}
@@ -32,6 +32,58 @@
   .expense-form{display:flex;gap:8px;margin-top:12px;max-width:560px;}
   .expense-form input,.expense-form button{border:1px solid var(--line);background:var(--ivory);padding:8px;font:13px inherit;}
   .expense-form input:first-child{flex:1;min-width:0;}.expense-form input[type=number]{width:110px;}.expense-form button{cursor:pointer;background:var(--ink);color:var(--ivory);}
+
+  /* annual dashboard */
+  .year-dashboard{display:grid;gap:20px;}
+  .year-head{display:flex;align-items:flex-end;justify-content:space-between;gap:16px;flex-wrap:wrap;}
+  .year-head h2{font-size:26px;margin:0;font-weight:700;}
+  .year-head p{margin:4px 0 0;color:var(--ink-2);font-size:14px;}
+  .year-switch{display:grid;gap:4px;color:var(--ink-2);font-size:11px;}
+  .year-switch select{min-width:110px;background:var(--ivory);border:1.5px solid var(--line);padding:9px 10px;min-height:44px;font:14px inherit;color:var(--ink);}
+  .year-switch select:focus-visible,.plan-form input:focus-visible,.plan-form textarea:focus-visible{outline:3px solid var(--clay);outline-offset:2px;}
+  .year-summary{border:2px solid var(--line);padding:16px;background:var(--ivory-2);}
+  .year-summary-title{font-size:12px;color:var(--ink-2);margin-bottom:12px;}
+  .year-summary-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;}
+  .year-stat{border-left:1px solid var(--line-soft);padding-left:12px;}
+  .year-stat:first-child{border-left:0;padding-left:0;}
+  .year-stat span{display:block;color:var(--ink-2);font-size:11px;}
+  .year-stat b{display:block;font:24px "SFMono-Regular",Consolas,monospace;margin-top:2px;}
+  .year-stat small{color:var(--ink-2);font-size:11px;}
+  .goal-note{margin:16px 0 0;padding-top:12px;border-top:1px solid var(--line-soft);font-size:12px;color:var(--ink-2);}
+  .quarter-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;}
+  .quarter-card{border:1.5px solid var(--line);padding:14px;min-height:190px;display:grid;align-content:start;gap:10px;}
+  .quarter-card.is-done{border-width:2px;}
+  .quarter-card.is-active{background:var(--ivory-2);}
+  .quarter-card.is-empty{border-color:var(--line-soft);}
+  .quarter-head{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;border-bottom:1px solid var(--line-soft);padding-bottom:10px;}
+  .quarter-head strong{font-size:20px;}
+  .quarter-range{color:var(--ink-2);font-size:12px;}
+  .q-status{margin-left:auto;border:1px solid var(--line);padding:3px 7px;font-size:10px;white-space:nowrap;}
+  .q-status.done{background:var(--ink);color:var(--ivory);}
+  .q-status.active{border-color:var(--clay);color:var(--clay);}
+  .q-status.planned{border-style:dashed;}
+  .q-status.empty{color:var(--ink-2);border-color:var(--line-soft);}
+  .quarter-target{font-size:11px;color:var(--ink-2);}
+  .annual-entry-list{list-style:none;margin:0;padding:0;display:grid;gap:8px;}
+  .annual-entry{display:flex;align-items:flex-start;gap:8px;padding:7px 0;border-top:1px solid var(--line-soft);font-size:13px;}
+  .annual-entry:first-child{border-top:0;padding-top:0;}
+  .annual-entry-main{min-width:0;flex:1;}
+  .annual-entry-title{display:block;font-weight:700;overflow-wrap:anywhere;}
+  .annual-entry-meta{display:block;color:var(--ink-2);font-size:11px;margin-top:2px;}
+  .entry-kind{flex:0 0 auto;border:1px solid var(--line-soft);padding:1px 5px;color:var(--ink-2);font-size:10px;}
+  .entry-kind.plan{border-style:dashed;}
+  .entry-open,.plan-delete{flex:0 0 auto;border:0;background:transparent;color:var(--ink);text-decoration:underline;padding:4px;min-height:36px;font:11px inherit;cursor:pointer;}
+  .entry-open:focus-visible,.plan-delete:focus-visible,.plan-form summary:focus-visible{outline:3px solid var(--clay);outline-offset:2px;}
+  .quarter-empty{color:var(--ink-2);font-size:12px;margin:0;}
+  .plan-form{border:1.5px solid var(--line);padding:14px;display:grid;gap:12px;}
+  .plan-form summary{cursor:pointer;font-weight:700;min-height:44px;display:flex;align-items:center;}
+  .plan-form form{display:grid;gap:12px;max-width:680px;}
+  .plan-fields{display:grid;grid-template-columns:1.4fr 1fr 1fr;gap:10px;}
+  .plan-field{display:grid;gap:4px;font-size:12px;}
+  .plan-field input,.plan-field textarea{width:100%;border:1px solid var(--line);background:var(--ivory);padding:9px 10px;font:14px inherit;color:var(--ink);min-height:44px;}
+  .plan-field textarea{min-height:72px;resize:vertical;}
+  .plan-form button[type=submit]{justify-self:start;background:var(--ink);color:var(--ivory);border:1px solid var(--ink);padding:10px 14px;min-height:44px;font:13px inherit;cursor:pointer;}
+  .plan-note{margin:0;color:var(--ink-2);font-size:11px;}
 
   /* header */
   header{border-bottom:2px solid var(--line);padding-bottom:16px;margin-bottom:24px;}
@@ -80,7 +132,7 @@
   /* checklist */
   ul.check{list-style:none;margin:0;padding:0;}
   ul.check li{display:flex;gap:12px;align-items:baseline;padding:6px 0;border-bottom:1px solid var(--line-soft);}
-  .box{flex:0 0 auto;width:16px;height:16px;border:1.5px solid var(--ink);display:inline-block;text-align:center;line-height:14px;font-size:12px;}
+  .box{flex:0 0 auto;width:44px;height:44px;border:1.5px solid var(--ink);background:var(--ivory);display:inline-block;text-align:center;line-height:40px;font-size:16px;cursor:pointer;}
   .box.on{background:var(--ink);color:var(--ivory);}
   .ck-text.on{color:var(--ink-2);text-decoration:line-through;}
 
@@ -104,6 +156,10 @@
   }
   @media(max-width:560px){
     ul.items li{flex-wrap:wrap;} .it-time{flex-basis:44px;}
+    .year-summary-grid{grid-template-columns:repeat(2,1fr);gap:16px 12px;}
+    .year-stat:nth-child(3){border-left:0;padding-left:0;}
+    .quarter-grid{grid-template-columns:1fr;}
+    .plan-fields{grid-template-columns:1fr;}
   }
 </style>
 </head>
@@ -116,6 +172,7 @@
 
   <nav class="trips" id="tabs"></nav>
   <div class="toolbar" aria-label="表示操作">
+    <button id="yearBtn" type="button">年間ダッシュボード</button>
     <button id="todayBtn" type="button">今日の予定</button>
     <button id="allBtn" type="button" class="active">全日程</button>
     <select id="daySelect" aria-label="日付へ移動"><option value="">日付へ移動</option></select>
@@ -130,10 +187,29 @@
 <script>
 const TAG_LABEL = { move:"移動", stay:"宿泊", spot:"観光", meal:"食事" };
 const WEEK = ["日","月","火","水","木","金","土"];
+const ANNUAL_GOAL = { quarters:4, minDays:4, minNights:3 };
+const QUARTERS = [
+  { number:1, label:"Q1", months:"1–3月", startMonth:0, endMonth:2 },
+  { number:2, label:"Q2", months:"4–6月", startMonth:3, endMonth:5 },
+  { number:3, label:"Q3", months:"7–9月", startMonth:6, endMonth:8 },
+  { number:4, label:"Q4", months:"10–12月", startMonth:9, endMonth:11 },
+];
 let activeTrip = null;
 let viewMode = "all";
+let screenMode = "trip";
+let allTrips = [];
+let annualYear = new Date().getFullYear();
+
+function escapeHTML(value){
+  return String(value ?? "").replace(/[&<>\"']/g, ch => ({"&":"&amp;","<":"&lt;",">":"&gt;",'\"':"&quot;","'":"&#39;"}[ch]));
+}
 
 function fmtYen(n){ return "¥" + n.toLocaleString("ja-JP"); }
+function parseDate(value){
+  if(!/^\d{4}-\d{2}-\d{2}$/.test(String(value||""))) return null;
+  const d = new Date(value + "T00:00:00");
+  return Number.isNaN(d.getTime()) ? null : d;
+}
 function tripDate(trip, day, index){
   if(/^\d{4}-\d{2}-\d{2}$/.test(day.date)) return new Date(day.date + "T00:00:00");
   const d = new Date(trip.start + "T00:00:00"); d.setDate(d.getDate()+index); return d;
@@ -143,6 +219,64 @@ function sameDay(a,b){ return a.getFullYear()===b.getFullYear()&&a.getMonth()===
 function storageKey(trip){ return `ryotei-checklist-${trip.id}`; }
 function costKey(trip){ return `ryotei-costs-${trip.id}`; }
 function getExtraCosts(trip){ try{return JSON.parse(localStorage.getItem(costKey(trip)))||[];}catch(e){return [];} }
+function annualPlanKey(){ return "ryotei-annual-plans-v1"; }
+function getAnnualConfig(){
+  const config = window.TRAVEL_PLAN || {};
+  const goal = config.goal || {};
+  return {
+    year: Number(config.year) || new Date().getFullYear(),
+    goal: {
+      quarters: Number(goal.quarters) || ANNUAL_GOAL.quarters,
+      minDays: Number(goal.minDays) || ANNUAL_GOAL.minDays,
+      minNights: Number(goal.minNights) || ANNUAL_GOAL.minNights,
+    },
+    plans: Array.isArray(config.plans) ? config.plans : [],
+  };
+}
+function readLocalPlans(){
+  try {
+    const saved = JSON.parse(localStorage.getItem(annualPlanKey()));
+    return Array.isArray(saved) ? saved.filter(p => p && p.start && p.end) : [];
+  } catch(e) { return []; }
+}
+function writeLocalPlans(plans){ localStorage.setItem(annualPlanKey(),JSON.stringify(plans)); }
+function getAnnualPlans(){
+  const configured = getAnnualConfig().plans.map((plan,i)=>({ ...plan, source:"data", id:String(plan.id||`data-plan-${i}`) }));
+  const local = readLocalPlans().map(plan=>({ ...plan, source:"local", id:String(plan.id) }));
+  return [...configured,...local];
+}
+function yearOf(value){ const d=parseDate(value); return d ? d.getFullYear() : null; }
+function durationForRange(start,end){
+  const startDate=parseDate(start), endDate=parseDate(end);
+  if(!startDate || !endDate || endDate < startDate) return null;
+  const days=daysBetween(startDate,endDate)+1;
+  return { days, nights:Math.max(0,days-1) };
+}
+function durationLabel(range){ return range ? `${range.nights}泊${range.days}日` : "期間不明"; }
+function isLongRange(start,end){
+  const duration=durationForRange(start,end), goal=getAnnualConfig().goal;
+  return Boolean(duration && duration.days >= goal.minDays && duration.nights >= goal.minNights);
+}
+function quarterForDate(date){ return date ? Math.floor(date.getMonth()/3)+1 : null; }
+function rangeLabel(start,end){
+  const startDate=parseDate(start), endDate=parseDate(end);
+  if(!startDate || !endDate) return "日付不明";
+  return `${dateLabel(startDate)} – ${dateLabel(endDate)}`;
+}
+function todayStart(){ const now=new Date(); return new Date(now.getFullYear(),now.getMonth(),now.getDate()); }
+function actualState(start,end){
+  const startDate=parseDate(start), endDate=parseDate(end), today=todayStart();
+  if(!startDate || !endDate) return "planned";
+  if(endDate < today) return "done";
+  if(startDate <= today && endDate >= today) return "active";
+  return "planned";
+}
+function getYearOptions(){
+  const years = new Set([new Date().getFullYear(), getAnnualConfig().year]);
+  allTrips.forEach(trip=>{ if(yearOf(trip.start)) years.add(yearOf(trip.start)); });
+  getAnnualPlans().forEach(plan=>{ if(yearOf(plan.start)) years.add(yearOf(plan.start)); });
+  return [...years].sort((a,b)=>b-a);
+}
 function getChecklist(trip){
   try { const saved=JSON.parse(localStorage.getItem(storageKey(trip))); return Array.isArray(saved)?saved:trip.checklist||[]; }
   catch(e){ return trip.checklist||[]; }
@@ -243,7 +377,7 @@ function renderTrip(trip){
         <tbody>${rows}</tbody>
         <tfoot><tr><td>合計</td><td></td><td class="num">${fmtYen(total)}</td></tr></tfoot>
       </table>
-      <div class="cost-note">※ 飲食代・入場料・現地交通費等は別途。</div>
+      <div class="cost-note">※ 食事は概算。入場料・現地交通費等は別途。</div>
       <form class="expense-form" id="expenseForm"><input name="item" required placeholder="現地支出" aria-label="支出項目"><input name="amount" required type="number" min="0" step="1" placeholder="金額" aria-label="金額"><button type="submit">追加</button></form>`;
   }
 
@@ -267,18 +401,108 @@ function renderTrip(trip){
   if(expenseForm) expenseForm.addEventListener("submit",e=>{e.preventDefault(); const f=new FormData(expenseForm); const extra=getExtraCosts(trip); extra.push({group:"現地",item:String(f.get("item")),amount:Number(f.get("amount")),paid:true,note:"端末入力"}); localStorage.setItem(costKey(trip),JSON.stringify(extra)); renderTrip(trip);});
 }
 
+function updateDaySelect(trip){
+  const daySelect=document.getElementById("daySelect");
+  if(!daySelect || !trip) return;
+  daySelect.innerHTML='<option value="">日付へ移動</option>'+(trip.days||[]).map((d,i)=>`<option value="${i}">${dateLabel(tripDate(trip,d,i))} ${escapeHTML(d.title||"")}</option>`).join("");
+}
+function updateModeButtons(){
+  document.getElementById("yearBtn")?.classList.toggle("active",screenMode === "annual");
+  document.getElementById("todayBtn")?.classList.toggle("active",screenMode === "trip" && viewMode === "today");
+  document.getElementById("allBtn")?.classList.toggle("active",screenMode === "trip" && viewMode === "all");
+}
+function showTrip(trip, mode="all"){
+  if(!trip) return;
+  activeTrip=trip; viewMode=mode; screenMode="trip";
+  updateModeButtons();
+  updateDaySelect(trip);
+  document.querySelectorAll("#tabs button").forEach(btn=>btn.classList.toggle("active",allTrips[Number(btn.dataset.i)]?.id === trip.id));
+  renderTrip(trip);
+}
+function annualEntry(kind,data){
+  return {
+    kind,
+    id:String(data.id||""),
+    title:String(data.title||"名称未設定"),
+    start:String(data.start||""),
+    end:String(data.end||""),
+    note:String(data.note||""),
+    data,
+  };
+}
+function getQuarterStatus(entries){
+  const longEntries=entries.filter(entry=>isLongRange(entry.start,entry.end));
+  if(longEntries.some(entry=>entry.kind === "trip" && actualState(entry.start,entry.end) === "done")) return { key:"done", label:"達成" };
+  if(longEntries.some(entry=>entry.kind === "trip" && actualState(entry.start,entry.end) === "active")) return { key:"active", label:"進行中" };
+  if(longEntries.length) return { key:"planned", label:"計画あり" };
+  if(entries.length) return { key:"short", label:"長期旅行未登録" };
+  return { key:"empty", label:"未計画" };
+}
+function renderAnnualDashboard(year){
+  annualYear=Number(year)||annualYear;
+  screenMode="annual";
+  updateModeButtons();
+  const config=getAnnualConfig(), goal=config.goal;
+  const trips=allTrips.filter(trip=>yearOf(trip.start) === annualYear).map(trip=>annualEntry("trip",trip));
+  const plans=getAnnualPlans().filter(plan=>yearOf(plan.start) === annualYear).map(plan=>annualEntry("plan",plan));
+  const entries=[...trips,...plans].sort((a,b)=>a.start.localeCompare(b.start));
+  const quarterViews=QUARTERS.map(quarter=>{
+    const quarterEntries=entries.filter(entry=>quarterForDate(parseDate(entry.start)) === quarter.number);
+    return { quarter, entries:quarterEntries, status:getQuarterStatus(quarterEntries) };
+  });
+  const doneCount=quarterViews.filter(view=>view.status.key === "done").length;
+  const activeCount=quarterViews.filter(view=>view.status.key === "active").length;
+  const plannedCount=quarterViews.filter(view=>view.status.key === "planned").length;
+  const missingCount=goal.quarters-doneCount-activeCount-plannedCount;
+  const yearOptions=getYearOptions().map(option=>`<option value="${option}" ${option===annualYear?"selected":""}>${option}年</option>`).join("");
+  const defaultStart=`${annualYear}-01-01`, defaultEnd=`${annualYear}-01-04`;
+  const quarterCards=quarterViews.map(view=>{
+    const entryHTML=view.entries.length ? `<ul class="annual-entry-list">${view.entries.map(entry=>{
+      const longLabel=isLongRange(entry.start,entry.end) ? "目安を満たす" : "短期";
+      const note=entry.note ? ` · ${escapeHTML(entry.note)}` : "";
+      const open=entry.kind === "trip"
+        ? `<button class="entry-open" type="button" data-trip-id="${escapeHTML(entry.id)}">旅程を開く</button>`
+        : `<button class="plan-delete" type="button" data-plan-delete="${escapeHTML(entry.id)}">削除</button>`;
+      return `<li class="annual-entry"><span class="entry-kind ${entry.kind === "plan" ? "plan" : ""}">${entry.kind === "plan" ? "計画" : "旅程"}</span><div class="annual-entry-main"><span class="annual-entry-title">${escapeHTML(entry.title)}</span><span class="annual-entry-meta">${escapeHTML(rangeLabel(entry.start,entry.end))} · ${durationLabel(durationForRange(entry.start,entry.end))} · ${longLabel}${note}</span></div>${open}</li>`;
+    }).join("")}</ul>` : `<p class="quarter-empty">この四半期の旅行はまだ登録されていません。</p>`;
+    return `<article class="quarter-card is-${view.status.key}"><div class="quarter-head"><strong>${view.quarter.label}</strong><span class="quarter-range">${view.quarter.months}</span><span class="q-status ${view.status.key}">${view.status.label}</span></div><div class="quarter-target">目安：${goal.minNights}泊${goal.minDays}日以上</div>${entryHTML}</article>`;
+  }).join("");
+  document.getElementById("view").innerHTML=`<section class="year-dashboard">
+    <div class="year-head"><div><div class="kicker mono">Annual Dashboard</div><h2>${annualYear}年の旅行計画</h2><p>3か月に1回、${goal.minNights}泊${goal.minDays}日以上の旅行を目安にします。</p></div><label class="year-switch">表示する年<select id="annualYearSelect" aria-label="表示する年">${yearOptions}</select></label></div>
+    <div class="year-summary"><div class="year-summary-title mono">QUARTERLY TARGET · ${goal.quarters} QUARTERS</div><div class="year-summary-grid"><div class="year-stat"><span>達成</span><b>${doneCount}/${goal.quarters}</b><small>終了した長期旅行</small></div><div class="year-stat"><span>進行中</span><b>${activeCount}</b><small>現在の長期旅行</small></div><div class="year-stat"><span>計画あり</span><b>${plannedCount}</b><small>旅程・計画を登録済み</small></div><div class="year-stat"><span>未計画</span><b>${Math.max(0,missingCount)}</b><small>四半期</small></div></div><p class="goal-note">「達成」は終了日を過ぎた${goal.minNights}泊${goal.minDays}日以上の旅程です。同じ四半期に複数登録しても、目安の達成数は1つとして数えます。</p></div>
+    <div class="sec mono">Quarterly Plan</div><div class="quarter-grid">${quarterCards}</div>
+    <details class="plan-form" id="planFormDetails"><summary>旅行計画を追加</summary><form id="planForm"><div class="plan-fields"><label class="plan-field">旅行名<input name="title" required maxlength="80" placeholder="例：秋の温泉旅行"></label><label class="plan-field">出発日<input name="start" type="date" required value="${defaultStart}"></label><label class="plan-field">帰着日<input name="end" type="date" required value="${defaultEnd}"></label></div><label class="plan-field">メモ（任意）<textarea name="note" maxlength="200" placeholder="行き先、同行者、予約状況など"></textarea></label><button type="submit">この計画を保存</button><p class="plan-note">計画はこの端末に保存されます。実際の旅程の詳細は、従来どおり data.js に登録してください。</p></form></details>
+  </section>`;
+  document.getElementById("annualYearSelect")?.addEventListener("change",event=>renderAnnualDashboard(Number(event.target.value)));
+  document.querySelectorAll("[data-trip-id]").forEach(button=>button.addEventListener("click",()=>{
+    const trip=allTrips.find(item=>String(item.id) === button.dataset.tripId);
+    showTrip(trip,"all");
+  }));
+  document.querySelectorAll("[data-plan-delete]").forEach(button=>button.addEventListener("click",()=>{
+    writeLocalPlans(readLocalPlans().filter(plan=>String(plan.id) !== button.dataset.planDelete));
+    renderAnnualDashboard(annualYear);
+  }));
+  document.getElementById("planForm")?.addEventListener("submit",event=>{
+    event.preventDefault();
+    const form=event.currentTarget, fields=new FormData(form);
+    const title=String(fields.get("title")||"").trim(), start=String(fields.get("start")||""), end=String(fields.get("end")||"");
+    const endInput=form.elements.end;
+    endInput.setCustomValidity(start && end && end < start ? "帰着日は出発日以降にしてください。" : "");
+    if(!form.reportValidity()) return;
+    const localPlans=readLocalPlans();
+    localPlans.push({id:`plan-${Date.now()}`,title,start,end,note:String(fields.get("note")||"").trim()});
+    writeLocalPlans(localPlans);
+    annualYear=yearOf(start)||annualYear;
+    renderAnnualDashboard(annualYear);
+  });
+}
+
 function init(){
-  const trips = (window.TRIPS||[]).slice();
+  allTrips = (window.TRIPS||[]).slice();
   const tabs = document.getElementById("tabs");
-  if(!trips.length){
-    document.getElementById("view").innerHTML =
-      "<p style='color:var(--ink-2)'>data.js に旅行が登録されていません。</p>";
-    tabs.style.display="none";
-    return;
-  }
   // 直近の未来／進行中を先頭に、次いで開始日の新しい順
   const today = new Date();
-  trips.sort((a,b)=>{
+  allTrips.sort((a,b)=>{
     const fa = daysBetween(today, new Date(a.end+"T00:00:00")) >= 0;
     const fb = daysBetween(today, new Date(b.end+"T00:00:00")) >= 0;
     if(fa !== fb) return fa ? -1 : 1;          // 未終了を先に
@@ -286,25 +510,34 @@ function init(){
              : (a.start > b.start ? -1 : 1);   // 終了済は新しい順
   });
 
-  tabs.innerHTML = trips.map((t,i)=>
+  if(allTrips.length){
+    tabs.innerHTML = allTrips.map((t,i)=>
     `<button data-i="${i}" class="${i===0?"active":""}">${t.title}
       <span class="t-date mono">${t.start.replace(/-/g,"/").slice(2)}</span></button>`
-  ).join("");
-  tabs.addEventListener("click", e=>{
-    const btn = e.target.closest("button"); if(!btn) return;
-    [...tabs.children].forEach(b=>b.classList.remove("active"));
-    btn.classList.add("active");
-    const selected=trips[+btn.dataset.i];
-    daySelect.innerHTML='<option value="">日付へ移動</option>'+selected.days.map((d,i)=>`<option value="${i}">${dateLabel(tripDate(selected,d,i))} ${d.title||""}</option>`).join("");
-    renderTrip(selected);
-  });
+    ).join("");
+    tabs.addEventListener("click", event=>{
+      const button=event.target.closest("button");
+      if(button) showTrip(allTrips[Number(button.dataset.i)],"all");
+    });
+  } else {
+    tabs.style.display="none";
+  }
   const daySelect=document.getElementById("daySelect");
-  daySelect.innerHTML='<option value="">日付へ移動</option>'+trips[0].days.map((d,i)=>`<option value="${i}">${dateLabel(tripDate(trips[0],d,i))} ${d.title||""}</option>`).join("");
-  document.getElementById("todayBtn").addEventListener("click",()=>{viewMode="today"; document.getElementById("todayBtn").classList.add("active"); document.getElementById("allBtn").classList.remove("active"); renderTrip(activeTrip);});
-  document.getElementById("allBtn").addEventListener("click",()=>{viewMode="all"; document.getElementById("allBtn").classList.add("active"); document.getElementById("todayBtn").classList.remove("active"); renderTrip(activeTrip);});
-  daySelect.addEventListener("change",()=>{ if(daySelect.value!==""){viewMode="all"; renderTrip(activeTrip); document.getElementById("day-"+daySelect.value)?.scrollIntoView({behavior:"smooth"}); daySelect.value="";} });
+  document.getElementById("yearBtn").addEventListener("click",()=>renderAnnualDashboard(annualYear));
+  document.getElementById("todayBtn").addEventListener("click",()=>showTrip(activeTrip||allTrips[0],"today"));
+  document.getElementById("allBtn").addEventListener("click",()=>showTrip(activeTrip||allTrips[0],"all"));
+  daySelect.addEventListener("change",()=>{
+    if(daySelect.value!=="" && activeTrip){
+      const index=daySelect.value;
+      showTrip(activeTrip,"all");
+      document.getElementById("day-"+index)?.scrollIntoView({behavior:"smooth"});
+      daySelect.value="";
+    }
+  });
   document.getElementById("printBtn").addEventListener("click",()=>window.print());
-  renderTrip(trips[0]);
+  annualYear=getAnnualConfig().year||new Date().getFullYear();
+  if(allTrips.length) showTrip(allTrips[0],"all");
+  else renderAnnualDashboard(annualYear);
 }
 init();
 if ("serviceWorker" in navigator && location.protocol !== "file:") navigator.serviceWorker.register("sw.js");
